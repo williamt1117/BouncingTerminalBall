@@ -84,7 +84,7 @@ void Wait(int ms)
 {
     clock_t startTime = clock();
 
-    while (clock() < startTime + ns)
+    while (clock() < startTime + ms)
     {
         //wait
     }
