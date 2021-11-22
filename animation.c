@@ -11,7 +11,6 @@
 #define WIDTH 120
 #define HEIGHT 30
 #define FPS 60
-#define SECONDS 30
 #define GRAVITY 170.0 //units per second squared
 #define BOUNCEDAMPER 0.2
 
@@ -65,10 +64,10 @@ void PrintCanvas(enum boardFill c[HEIGHT][WIDTH])
                     printw(" ");
                     break;
                 case 1:
-                    printw("\u2588");
+                    printw("%s", FILLED);
                     break;
                 case 2:
-                    printw("\u2593");
+                    printw("%s", SHADE);
                     break;
             }
             attroff(COLOR_PAIR(1));
@@ -82,7 +81,7 @@ void PrintCanvas(enum boardFill c[HEIGHT][WIDTH])
 //Moves the cursor from the bottom left of the canvas to the top left of the canvas to reprint and sets every element of input "c" to empty. 
 void ResetCanvas(enum boardFill c[HEIGHT][WIDTH])
 {
-    move(0, 0);
+    move(1, 0);
     for (int x = 0; x < HEIGHT; x++)
         for (int y = 0; y < WIDTH; y++)
             c[x][y] = empty;
@@ -163,6 +162,8 @@ int main()
     start_color();
     cbreak();
     timeout((1000 / FPS) - 5); //approx. 10ms to finish calculations
+
+    printw("Bouncing Terminal Ball - Use [W] [A] [S] [D] to control the ball. Q to exit.\n");
     
     //Create canvas and fill with spaces.
     enum boardFill canvas[HEIGHT][WIDTH];
@@ -173,7 +174,7 @@ int main()
     double boxPosition[2] = {INITIALXPOS, INITIALYPOS};
     double boxVelocity[2] = {INITIALXVEL, INITIALYVEL};
 
-    for (int i = 0; i < (SECONDS * FPS); i++) //loop through all frames
+    while (1) //loop through all frames
     {
         UpdatePhysics(boxPosition, boxVelocity);
         UpdateCirclePosition(boxPosition, canvas);
@@ -203,6 +204,11 @@ int main()
             else if (ch == 's')
             {
                 boxVelocity[0] += VERTICALVELOCITYCHANGE;
+            }
+            else if (ch == 'q')
+            {
+                endwin();
+                return 0; //exit program
             }
         }
         ResetCanvas(canvas);
