@@ -17,15 +17,15 @@
 #define RADIUS 3 //radius excludes center point (ie. 0 = 1 pixel "circle") measured as horizontal units.
 
 //The "Circle" is treated as a rectangle for physics since no oblique bounces occur
-#define BOXHEIGHT RADIUS + 1
-#define BOXWIDTH RADIUS * 2 + 1
+#define COLLIDERHEIGHT RADIUS + 1
+#define COLLIDERWIDTH RADIUS * 2 + 1
 
 #define RADIUSDAMPER -0.07 //Only affects visuals, has no affect on physics.
 
 //Velocities measured in units / second. Positions measured in units
 #define INITIALXVEL 0
 #define INITIALYVEL 90
-#define INITIALXPOS BOXHEIGHT / 2.0 + 2
+#define INITIALXPOS COLLIDERHEIGHT / 2.0 + 2
 #define INITIALYPOS WIDTH / 2.0
 
 //user input velocity changes
@@ -95,18 +95,18 @@ void UpdatePhysics(double pos[2], double vel[2])
 
     //Check if desired X position is out of bounds
     float expectedPos[2] = {pos[0] + ((double)vel[0] / FPS), pos[1] + ((double)vel[1] / FPS)};
-    float halvedBoxHeight = BOXHEIGHT / 2.0;
-    float halvedBoxWidth = BOXWIDTH / 2.0;
+    float halvedHeight = COLLIDERHEIGHT / 2.0;
+    float halvedWidth = COLLIDERWIDTH / 2.0;
     int expectedY = round(expectedPos[0]);
     int expectedX = round(expectedPos[1]);
 
-    if ((expectedY + halvedBoxHeight) >= HEIGHT)
+    if ((expectedY + halvedHeight) >= HEIGHT)
     {
         //Bouncing off bottom
         vel[0] = vel[0] - (double)GRAVITY / FPS; //This is important to ensure there is no creation of energy when hitting the ground
         vel[0] *= (-1 + BOUNCEDAMPER);
     }
-    if ((expectedX - halvedBoxWidth < 0) || (expectedX + halvedBoxWidth >= WIDTH))
+    if ((expectedX - halvedWidth < 0) || (expectedX + halvedWidth >= WIDTH))
     {
         //Bouncing off left or right
         vel[1] *= -1;
@@ -132,14 +132,14 @@ void UpdateCirclePosition (double pos[2], enum boardFill c[HEIGHT][WIDTH])
 {
     int rounded[2] = {round(pos[0]), round(pos[1])};
 
-    for (int rowIndex = rounded[0] - floor(BOXHEIGHT / 2); rowIndex <= rounded[0] + floor(BOXHEIGHT / 2); rowIndex++)
+    for (int rowIndex = rounded[0] - floor(COLLIDERHEIGHT / 2); rowIndex <= rounded[0] + floor(COLLIDERHEIGHT / 2); rowIndex++)
     {
-        for (int columnIndex = rounded[1] - floor(BOXWIDTH / 2); columnIndex <= rounded[1] + floor(BOXWIDTH / 2); columnIndex++)
+        for (int columnIndex = rounded[1] - floor(COLLIDERWIDTH / 2); columnIndex <= rounded[1] + floor(COLLIDERWIDTH / 2); columnIndex++)
         {
             int testPoint[2] = {rowIndex, columnIndex};
             if (rowIndex >= 0)
             {
-                double result = InsideOval(rounded, testPoint, (BOXWIDTH/2) * (1 - RADIUSDAMPER), (BOXHEIGHT/2) * (1 - RADIUSDAMPER));
+                double result = InsideOval(rounded, testPoint, (COLLIDERWIDTH/2) * (1 - RADIUSDAMPER), (COLLIDERHEIGHT/2) * (1 - RADIUSDAMPER));
                 if (result <= 0.75)
                 {
                     c[rowIndex][columnIndex] = fill;
@@ -161,7 +161,7 @@ int main()
     noecho();
     start_color();
     cbreak();
-    timeout((1000 / FPS) - 5); //approx. 10ms to finish calculations
+    timeout(1000 / FPS - 5); //approx. 10ms to finish calculations
 
     printw("Bouncing Terminal Ball - Use [W] [A] [S] [D] to control the ball. Q to exit.\n");
     
@@ -171,13 +171,13 @@ int main()
         for (int y = 0; y < WIDTH; y++)
             canvas[x][y] = empty;
 
-    double boxPosition[2] = {INITIALXPOS, INITIALYPOS};
-    double boxVelocity[2] = {INITIALXVEL, INITIALYVEL};
+    double position[2] = {INITIALXPOS, INITIALYPOS};
+    double velocity[2] = {INITIALXVEL, INITIALYVEL};
 
     while (1) //loop through all frames
     {
-        UpdatePhysics(boxPosition, boxVelocity);
-        UpdateCirclePosition(boxPosition, canvas);
+        UpdatePhysics(position, velocity);
+        UpdateCirclePosition(position, canvas);
         PrintCanvas(canvas);
         refresh();
         //napms(1000 / FPS);
@@ -191,19 +191,19 @@ int main()
             //valid character pressed
             if (ch == 'a')
             {
-                boxVelocity[1] -= HORIZONTALVELOCITYCHANGE;
+                velocity[1] -= HORIZONTALVELOCITYCHANGE;
             }
             else if (ch == 'd')
             {
-                boxVelocity[1] += HORIZONTALVELOCITYCHANGE;
+                velocity[1] += HORIZONTALVELOCITYCHANGE;
             }
             else if (ch == 'w')
             {
-                boxVelocity[0] -= VERTICALVELOCITYCHANGE;
+                velocity[0] -= VERTICALVELOCITYCHANGE;
             }
             else if (ch == 's')
             {
-                boxVelocity[0] += VERTICALVELOCITYCHANGE;
+                velocity[0] += VERTICALVELOCITYCHANGE;
             }
             else if (ch == 'q')
             {
