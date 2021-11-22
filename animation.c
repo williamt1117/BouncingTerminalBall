@@ -1,14 +1,17 @@
+#include <stdlib.h>
+#include <ncurses.h>
 #include<stdio.h>
 #include<time.h>
 #include<math.h>
+#include<locale.h>
 
 //Coordinate system measured from top left. X value increases downwards and Y increases to the right.
 // William Trottier 11/4/2021
 
 #define WIDTH 120
 #define HEIGHT 30
-#define FPS 60
-#define SECONDS 10
+#define FPS 30
+#define SECONDS 30
 #define GRAVITY 120.0 //units per second squared
 #define BOUNCEDAMPER 0.08
 
@@ -26,10 +29,15 @@
 #define INITIALXPOS BOXHEIGHT / 2.0 + 2
 #define INITIALYPOS WIDTH / 2.0
 
+//user input velocity changes
+#define HORIZONTALVELOCITYCHANGE 10
+#define VERTICALVELOCITYCHANGE 30
+
 #define NULLSPACE " "
-#define FILLED "█"
-#define SHADE "▓"
-#define COLORCODE 95
+#define FILLED "█" //
+#define SHADE "▓" //
+#define COLORFORE COLOR_MAGENTA
+#define COLORBACK COLOR_BLACK
 //Color Codes:
 // 30 BLACK, 31 RED, 32 GREEN, 33 YELLOW, 34 BLUE, 35 PURPLE, 36 CYAN, 37 WHITE
 // 90 - 97 are the lighter versions of the above (respectively)
@@ -44,50 +52,38 @@ enum boardFill
 //Takes a 2d array of enum Boardfill, "c" and prints every element with a \n between lines
 void PrintCanvas(enum boardFill c[HEIGHT][WIDTH])
 {
+    init_pair(1, COLORFORE, COLORBACK);
     for (int x = 0; x < HEIGHT; x++)
     {
         for (int y = 0; y < WIDTH; y++)
         {
+            attrset(COLOR_PAIR(1));
             switch (c[x][y])
             {
                 case 0:
-                    printf("%s", NULLSPACE);
+               
+                    printw(" ");
                     break;
                 case 1:
-                    printf("\033[0;%im", COLORCODE); //changes text color
-                    printf("%s", FILLED);
-                    printf("\033[0m"); //resets to default text color
+                    printw("\u2588");
                     break;
                 case 2:
-                    printf("\033[0;%im", COLORCODE);
-                    printf("%s", SHADE);
-                    printf("\033[0m");
+                    printw("\u2593");
                     break;
             }
+            attroff(COLOR_PAIR(1));
         }   
-        printf("\n");
+        printw("\n");
     }
 }
 
 //Moves the cursor from the bottom left of the canvas to the top left of the canvas to reprint and sets every element of input "c" to empty. 
 void ResetCanvas(enum boardFill c[HEIGHT][WIDTH])
 {
-    printf("\x1b[%iA", HEIGHT); //escape character to move cursor up by "HEIGHT"
+    move(0, 0);
     for (int x = 0; x < HEIGHT; x++)
         for (int y = 0; y < WIDTH; y++)
             c[x][y] = empty;
-}
-
-//Stalls program for "ms" micro seconds.
-//NOTE: different systems may use milliseconds for measured time
-void Wait(int ms)
-{
-    clock_t startTime = clock();
-
-    while (clock() < startTime + ms)
-    {
-        //wait
-    }
 }
 
 //Acceleration is constant. Updates velocity by acceleration, bounces if wall is encountered and updates position by "velocity"
@@ -158,6 +154,14 @@ void UpdateCirclePosition (double pos[2], enum boardFill c[HEIGHT][WIDTH])
 
 int main()
 {
+    WINDOW* my_win;
+    setlocale(LC_ALL, "");
+    initscr();
+    noecho();
+    start_color();
+    cbreak();
+    timeout((1000 / FPS) / 3.0);
+    
     //Create canvas and fill with spaces.
     enum boardFill canvas[HEIGHT][WIDTH];
     for (int x = 0; x < HEIGHT; x++)
@@ -172,9 +176,37 @@ int main()
         UpdatePhysics(boxPosition, boxVelocity);
         UpdateCirclePosition(boxPosition, canvas);
         PrintCanvas(canvas);
-        Wait((int)(1000000 / FPS)); //
-        if (i != (SECONDS * FPS - 1)) ResetCanvas(canvas); //Don't clear canvas on last frame for aesthetics.
+        refresh();
+        //napms(1000 / FPS);
+        char ch = getch();
+        if (ch == -1)
+        {
+            napms(1000 / FPS);
+        }
+        else
+        {
+            //valid character pressed
+            if (ch == 'a')
+            {
+                boxVelocity[1] -= HORIZONTALVELOCITYCHANGE;
+            }
+            else if (ch == 'd')
+            {
+                boxVelocity[1] += HORIZONTALVELOCITYCHANGE;
+            }
+            else if (ch == 'w')
+            {
+                boxVelocity[0] -= VERTICALVELOCITYCHANGE;
+            }
+            else if (ch == 's')
+            {
+                boxVelocity[0] += VERTICALVELOCITYCHANGE;
+            }
+        }
+        ResetCanvas(canvas);
     }
     printf("\n");
+    getch();
+    endwin();
     return 0;
 }
