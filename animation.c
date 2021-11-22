@@ -10,10 +10,10 @@
 
 #define WIDTH 120
 #define HEIGHT 30
-#define FPS 30
+#define FPS 60
 #define SECONDS 30
-#define GRAVITY 120.0 //units per second squared
-#define BOUNCEDAMPER 0.08
+#define GRAVITY 170.0 //units per second squared
+#define BOUNCEDAMPER 0.2
 
 #define RADIUS 3 //radius excludes center point (ie. 0 = 1 pixel "circle") measured as horizontal units.
 
@@ -160,7 +160,7 @@ int main()
     noecho();
     start_color();
     cbreak();
-    timeout((1000 / FPS) / 3.0);
+    timeout((1000 / FPS) - 5); //approx. 10ms to finish calculations
     
     //Create canvas and fill with spaces.
     enum boardFill canvas[HEIGHT][WIDTH];
@@ -181,7 +181,7 @@ int main()
         char ch = getch();
         if (ch == -1)
         {
-            napms(1000 / FPS);
+            napms(1000 / FPS - 5); //approx. 10ms to finish calculations
         }
         else
         {
