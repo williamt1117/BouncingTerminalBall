@@ -75,7 +75,7 @@ void PrintCanvas(enum boardFill c[HEIGHT][WIDTH])
         printw("\n");
     }
     for (int i = 0; i < WIDTH; i++)
-        printw("%s", SHADE); //print ground
+        printw("%s", "="); //print ground
 }
 
 //Moves the cursor from the bottom left of the canvas to the top left of the canvas to reprint and sets every element of input "c" to empty. 
