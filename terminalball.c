@@ -110,6 +110,7 @@ void UpdatePhysics(double pos[2], double vel[2])
     {
         //Bouncing off left or right
         vel[1] *= -1;
+        vel[1] -= BOUNCEDAMPER*vel[1];
     }
 
     double finalPosition[2] = {pos[0] + ((double)vel[0] / FPS), pos[1] + ((double)vel[1] / FPS)}; 
@@ -161,7 +162,7 @@ int main()
     noecho();
     start_color();
     cbreak();
-    timeout(1000 / FPS - 5); //approx. 10ms to finish calculations
+    timeout(1000 / FPS - 5); //approx. 5ms to finish calculations
 
     printw("Bouncing Terminal Ball - Use [W] [A] [S] [D] to control the ball. Q to exit.\n");
     
