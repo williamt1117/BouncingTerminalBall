@@ -41,6 +41,13 @@
 // 30 BLACK, 31 RED, 32 GREEN, 33 YELLOW, 34 BLUE, 35 PURPLE, 36 CYAN, 37 WHITE
 // 90 - 97 are the lighter versions of the above (respectively)
 
+typedef struct
+{
+    double X;
+    double Y;
+} Vector2D;
+
+
 enum boardFill
 {
     empty = 0,
@@ -88,56 +95,56 @@ void ResetCanvas(enum boardFill c[HEIGHT][WIDTH])
 }
 
 //Acceleration is constant. Updates velocity by acceleration, bounces if wall is encountered and updates position by "velocity"
-void UpdatePhysics(double pos[2], double vel[2])
+void UpdatePhysics(Vector2D* pos, Vector2D* vel)
 {
     //update velocity
-    vel[0] = vel[0] + (double)GRAVITY / FPS;
+    vel->X = vel->X + (double)GRAVITY / FPS;
 
     //Check if desired X position is out of bounds
-    float expectedPos[2] = {pos[0] + ((double)vel[0] / FPS), pos[1] + ((double)vel[1] / FPS)};
+    Vector2D expectedPos = {pos->X + ((double)vel->Y / FPS), pos->Y + ((double)vel->Y / FPS)};
     float halvedHeight = COLLIDERHEIGHT / 2.0;
     float halvedWidth = COLLIDERWIDTH / 2.0;
-    int expectedY = round(expectedPos[0]);
-    int expectedX = round(expectedPos[1]);
+    int expectedY = round(expectedPos.X);
+    int expectedX = round(expectedPos.Y);
 
     if ((expectedY + halvedHeight) >= HEIGHT)
     {
         //Bouncing off bottom
-        vel[0] = vel[0] - (double)GRAVITY / FPS; //This is important to ensure there is no creation of energy when hitting the ground
-        vel[0] *= (-1 + BOUNCEDAMPER);
+        vel->X = vel->X - (double)GRAVITY / FPS; //This is important to ensure there is no creation of energy when hitting the ground
+        vel->X *= (-1 + BOUNCEDAMPER);
     }
     if ((expectedX - halvedWidth < 0) || (expectedX + halvedWidth >= WIDTH))
     {
         //Bouncing off left or right
-        vel[1] *= -1;
-        vel[1] -= BOUNCEDAMPER*vel[1];
+        vel->Y *= -1;
+        vel->Y -= BOUNCEDAMPER*vel->Y;
     }
 
-    double finalPosition[2] = {pos[0] + ((double)vel[0] / FPS), pos[1] + ((double)vel[1] / FPS)}; 
-    pos[0] = finalPosition[0];
-    pos[1] = finalPosition[1];
+    Vector2D finalPosition[2] = {pos->X + ((double)vel->X / FPS), pos->Y + ((double)vel->Y / FPS)}; 
+    pos->X = finalPosition->X;
+    pos->Y = finalPosition->Y;
 }
 
 //Given an origin of the oval (ovalOrigin), a width and a height of the oval, and a point, returns a strength value ranging from 0 to infinity.
 //If the point is inside the oval it returns a value < 1. If the point is on the surface of the oval it returns 1. If the point is outside the oval it returns a value > 1.
 //NOTE: this function is exponential and NOT linear (ex. A point one height above the oval would return a value of 4)
-double InsideOval(int point[2], int ovalOrigin[2], double width, double height)
+double InsideOval(Vector2D point, Vector2D ovalOrigin, double width, double height)
 {
-    int relativeVector[2] = {point[0] - ovalOrigin[0], point[1] - ovalOrigin[1]};
-    double result = pow(relativeVector[1], 2)/pow(width, 2) + pow(relativeVector[0], 2)/pow(height, 2);
+    Vector2D relativeVector = {point.X - ovalOrigin.X, point.Y - ovalOrigin.Y};
+    double result = pow(relativeVector.Y, 2)/pow(width, 2) + pow(relativeVector.X, 2)/pow(height, 2);
     return result;
 }
 
 //Given a position and a canvas, rounds the position to a point on the canvas and updates the canvas to be filled according to the strength of the oval at all points contained by the circle.
-void UpdateCirclePosition (double pos[2], enum boardFill c[HEIGHT][WIDTH])
+void UpdateCirclePosition (Vector2D pos, enum boardFill c[HEIGHT][WIDTH])
 {
-    int rounded[2] = {round(pos[0]), round(pos[1])};
+    Vector2D rounded = {round(pos.X), round(pos.Y)};
 
-    for (int rowIndex = rounded[0] - floor(COLLIDERHEIGHT / 2); rowIndex <= rounded[0] + floor(COLLIDERHEIGHT / 2); rowIndex++)
+    for (int rowIndex = rounded.X - floor(COLLIDERHEIGHT / 2); rowIndex <= rounded.Y + floor(COLLIDERHEIGHT / 2); rowIndex++)
     {
-        for (int columnIndex = rounded[1] - floor(COLLIDERWIDTH / 2); columnIndex <= rounded[1] + floor(COLLIDERWIDTH / 2); columnIndex++)
+        for (int columnIndex = rounded.Y - floor(COLLIDERWIDTH / 2); columnIndex <= rounded.Y + floor(COLLIDERWIDTH / 2); columnIndex++)
         {
-            int testPoint[2] = {rowIndex, columnIndex};
+            Vector2D testPoint = {rowIndex, columnIndex};
             if (rowIndex >= 0)
             {
                 double result = InsideOval(rounded, testPoint, (COLLIDERWIDTH/2) * (1 - RADIUSDAMPER), (COLLIDERHEIGHT/2) * (1 - RADIUSDAMPER));
@@ -172,12 +179,12 @@ int main()
         for (int y = 0; y < WIDTH; y++)
             canvas[x][y] = empty;
 
-    double position[2] = {INITIALXPOS, INITIALYPOS};
-    double velocity[2] = {INITIALXVEL, INITIALYVEL};
+    Vector2D position = {INITIALXPOS, INITIALYPOS};
+    Vector2D velocity = {INITIALXVEL, INITIALYVEL};
 
     while (1) //loop through all frames
     {
-        UpdatePhysics(position, velocity);
+        UpdatePhysics(&position, &velocity);
         UpdateCirclePosition(position, canvas);
         PrintCanvas(canvas);
         refresh();
@@ -192,19 +199,19 @@ int main()
             //valid character pressed
             if (ch == 'a')
             {
-                velocity[1] -= HORIZONTALVELOCITYCHANGE;
+                velocity.Y -= HORIZONTALVELOCITYCHANGE;
             }
             else if (ch == 'd')
             {
-                velocity[1] += HORIZONTALVELOCITYCHANGE;
+                velocity.Y += HORIZONTALVELOCITYCHANGE;
             }
             else if (ch == 'w')
             {
-                velocity[0] -= VERTICALVELOCITYCHANGE;
+                velocity.X -= VERTICALVELOCITYCHANGE;
             }
             else if (ch == 's')
             {
-                velocity[0] += VERTICALVELOCITYCHANGE;
+                velocity.X += VERTICALVELOCITYCHANGE;
             }
             else if (ch == 'q')
             {
