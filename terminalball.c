@@ -38,8 +38,8 @@
 #define COLORFORE COLOR_MAGENTA
 #define COLORBACK COLOR_BLACK
 //Color Codes:
-// 30 BLACK, 31 RED, 32 GREEN, 33 YELLOW, 34 BLUE, 35 PURPLE, 36 CYAN, 37 WHITE
-// 90 - 97 are the lighter versions of the above (respectively)
+// COLOR_BLACK, COLOR_RED, COLOR_GREEN, COLOR_YELLOW, COLOR_BLUE,
+// COLOR_MAGENTA, COLOR_CYAN, COLOR_WHITE
 
 typedef struct
 {
@@ -55,7 +55,7 @@ enum boardFill
     shade = 2
 };
 
-//Takes a 2d array of enum Boardfill, "c" and prints every element with a \n between lines
+//Takes a 2d array of enum Boardfill, "c" and prints every element with a 'newline' between lines
 void PrintCanvas(enum boardFill c[HEIGHT][WIDTH])
 {
     init_pair(1, COLORFORE, COLORBACK);
@@ -85,7 +85,8 @@ void PrintCanvas(enum boardFill c[HEIGHT][WIDTH])
         printw("%s", "="); //print ground
 }
 
-//Moves the cursor from the bottom left of the canvas to the top left of the canvas to reprint and sets every element of input "c" to empty. 
+//Moves the cursor from the bottom left of the canvas to the top left of the canvas to reprint and
+//sets every element of input "c" to empty. 
 void ResetCanvas(enum boardFill c[HEIGHT][WIDTH])
 {
     move(1, 0);
@@ -94,7 +95,8 @@ void ResetCanvas(enum boardFill c[HEIGHT][WIDTH])
             c[x][y] = empty;
 }
 
-//Acceleration is constant. Updates velocity by acceleration, bounces if wall is encountered and updates position by "velocity"
+//Acceleration is constant. Updates velocity by acceleration, bounces if wall is encountered
+//and updates position by "velocity" and "gravity" accordingly.
 void UpdatePhysics(Vector2D* pos, Vector2D* vel)
 {
     //update velocity
@@ -125,8 +127,9 @@ void UpdatePhysics(Vector2D* pos, Vector2D* vel)
     pos->Y = finalPosition->Y;
 }
 
-//Given an origin of the oval (ovalOrigin), a width and a height of the oval, and a point, returns a strength value ranging from 0 to infinity.
-//If the point is inside the oval it returns a value < 1. If the point is on the surface of the oval it returns 1. If the point is outside the oval it returns a value > 1.
+//Given an origin of the oval (ovalOrigin), a width and a height of the oval, and a point, returns a
+//strength value ranging from 0 to infinity. If the point is inside the oval it returns a value < 1.
+//If the point is on the surface of the oval it returns 1. If the point is outside the oval it returns a value > 1.
 //NOTE: this function is exponential and NOT linear (ex. A point one height above the oval would return a value of 4)
 double InsideOval(Vector2D point, Vector2D ovalOrigin, double width, double height)
 {
@@ -135,7 +138,8 @@ double InsideOval(Vector2D point, Vector2D ovalOrigin, double width, double heig
     return result;
 }
 
-//Given a position and a canvas, rounds the position to a point on the canvas and updates the canvas to be filled according to the strength of the oval at all points contained by the circle.
+//Given a position and a canvas, rounds the position to a point on the canvas and updates the canvas
+//to be filled according to the strength of the oval at all points contained by the circle.
 void UpdateCirclePosition (Vector2D pos, enum boardFill c[HEIGHT][WIDTH])
 {
     Vector2D rounded = {round(pos.X), round(pos.Y)};
@@ -147,7 +151,9 @@ void UpdateCirclePosition (Vector2D pos, enum boardFill c[HEIGHT][WIDTH])
             Vector2D testPoint = {rowIndex, columnIndex};
             if (rowIndex >= 0)
             {
-                double result = InsideOval(rounded, testPoint, (COLLIDERWIDTH/2) * (1 - RADIUSDAMPER), (COLLIDERHEIGHT/2) * (1 - RADIUSDAMPER));
+                double result = InsideOval(rounded, testPoint, (COLLIDERWIDTH/2) *
+                                (1 - RADIUSDAMPER), (COLLIDERHEIGHT/2) * (1 - RADIUSDAMPER));
+                                
                 if (result <= 0.75)
                 {
                     c[rowIndex][columnIndex] = fill;
